@@ -67,7 +67,8 @@ jobs:
 
       - name: Python deps
         shell: bash
-        run: python3 -m pip install --quiet pillow || python -m pip install --quiet pillow
+        run: |
+          if [[ "$RUNNER_OS" == "Linux" ]]; then python3 -m pip install --quiet pillow python-xlib; else python -m pip install --quiet pillow; fi
 
       - name: Build base
         shell: bash
@@ -154,6 +155,7 @@ jobs:
             runner: blacksmith-8vcpu-ubuntu-2404
             target: x86_64-unknown-linux-gnu
     name: app (${{ matrix.name }})
+    if: ${{ !contains(github.event.head_commit.message, '[probe-only]') }}
     runs-on: ${{ matrix.runner }}
     timeout-minutes: 240
     env:

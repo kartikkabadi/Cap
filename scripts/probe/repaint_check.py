@@ -16,6 +16,31 @@ import time
 
 from PIL import ImageGrab
 
+if sys.platform != "win32":
+    from Xlib import X, display
+
+# Covers the window centre, then uncovers it, at a different delay after each
+# color change so some of the exposures land while the window is pausing its
+# frame requests. Xvfb keeps no backing store: the uncovered area only shows
+# the color again if the window presents in response to the Expose.
+EXPOSE_DELAYS = [0.06, 0.08, 0.10, 0.12, 0.14, 0.16]
+
+
+def cover_and_uncover(x, y):
+    connection = display.Display(os.environ["DISPLAY"])
+    screen = connection.screen()
+    cover = screen.root.create_window(
+        x - 100, y - 60, 200, 120, 0, screen.root_depth, X.InputOutput, X.CopyFromParent,
+        background_pixel=screen.white_pixel, override_redirect=1,
+    )
+    cover.map()
+    connection.sync()
+    time.sleep(0.1)
+    cover.unmap()
+    cover.destroy()
+    connection.sync()
+    connection.close()
+
 
 def grab(x, y):
     if sys.platform == "win32":
@@ -36,6 +61,7 @@ def main():
         [args.binary, "check"], stdout=subprocess.PIPE, text=True, bufsize=1
     )
     lines, failures = [], []
+    colors_seen = 0
     for line in process.stdout:
         line = line.strip()
         print(f"{args.label}: {line}", flush=True)
@@ -48,7 +74,13 @@ def main():
         scale = float(values["scale"])
         x = int((float(values["x"]) + float(values["w"]) / 2) * scale)
         y = int((float(values["y"]) + float(values["h"]) / 2) * scale)
-        time.sleep(0.5)
+        if sys.platform == "win32":
+            time.sleep(0.5)
+        else:
+            time.sleep(EXPOSE_DELAYS[colors_seen % len(EXPOSE_DELAYS)])
+            cover_and_uncover(x, y)
+            time.sleep(0.4)
+        colors_seen += 1
         try:
             pixel = grab(x, y)
         except Exception as error:  # noqa: BLE001
