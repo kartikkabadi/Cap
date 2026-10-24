@@ -126,11 +126,11 @@ jobs:
             return $status
           }
           if [[ "$RUNNER_OS" == "Linux" ]]; then
-            export -f run; export variants py ext
-            xvfb-run -a --server-args="-screen 0 1920x1080x24 -noreset" bash -c 'set -euo pipefail; run' || status=$?
-          else
-            run || status=$?
+            Xvfb :99 -screen 0 1920x1080x24 -noreset &
+            export DISPLAY=:99
+            sleep 2
           fi
+          run || status=$?
           cat "$RUNNER_TEMP/probe-summary.md" >> "$GITHUB_STEP_SUMMARY"
           exit "${status:-0}"
 
