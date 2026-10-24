@@ -1,0 +1,233 @@
+diff --git a/crates/gpui/src/app.rs b/crates/gpui/src/app.rs
+index d0cab13..5a563a2 100644
+--- a/crates/gpui/src/app.rs
++++ b/crates/gpui/src/app.rs
+@@ -1709,6 +1709,7 @@ impl App {
+     fn apply_refresh_effect(&mut self) {
+         for window in self.windows.values_mut() {
+             if let Some(window) = window.as_deref_mut() {
++                crate::frame_trace::record(window.handle.window_id().as_u64(), "app_refresh", None);
+                 window.refreshing = true;
+                 window.invalidator.set_dirty(true);
+             }
+@@ -2535,14 +2536,14 @@ impl App {
+         // doesn't mean the window is currently rendering the entity. Filter
+         // through `tracked_entities` to keep invalidation tight to windows
+         // that actually display this entity right now.
+-        let live_invalidators: SmallVec<[WindowInvalidator; 2]> = window_invalidators
++        let live_invalidators: SmallVec<[(WindowId, WindowInvalidator); 2]> = window_invalidators
+             .iter()
+             .filter(|(window_id, _)| {
+                 self.tracked_entities
+                     .get(window_id)
+                     .is_some_and(|set| set.contains(&entity_id))
+             })
+-            .map(|(_, invalidator)| invalidator.clone())
++            .map(|(window_id, invalidator)| (*window_id, invalidator.clone()))
+             .collect();
+ 
+         if live_invalidators.is_empty() {
+@@ -2551,8 +2552,10 @@ impl App {
+                     .push_back(Effect::Notify { emitter: entity_id });
+             }
+         } else {
+-            for invalidator in &live_invalidators {
+-                invalidator.invalidate_view(entity_id, self);
++            for (window_id, invalidator) in &live_invalidators {
++                if invalidator.invalidate_view(entity_id, self) {
++                    crate::frame_trace::record(window_id.as_u64(), "notify", None);
++                }
+             }
+         }
+ 
+diff --git a/crates/gpui/src/elements/animation.rs b/crates/gpui/src/elements/animation.rs
+index 0a3c0c3..a58eb91 100644
+--- a/crates/gpui/src/elements/animation.rs
++++ b/crates/gpui/src/elements/animation.rs
+@@ -199,6 +199,11 @@ impl<E: IntoElement + 'static> Element for AnimationElement<E> {
+             let mut element = (self.animator)(element, animation_ix, delta).into_any_element();
+ 
+             if !done {
++                crate::frame_trace::record(
++                    window.window_handle().window_id().as_u64(),
++                    "animation",
++                    Some(format!("{:?}", self.id)),
++                );
+                 window.request_animation_frame();
+             }
+ 
+diff --git a/crates/gpui/src/frame_trace.rs b/crates/gpui/src/frame_trace.rs
+new file mode 100644
+index 0000000..c03d929
+--- /dev/null
++++ b/crates/gpui/src/frame_trace.rs
+@@ -0,0 +1,114 @@
++//! Scratch instrumentation (not for main): with `CAP_FRAME_TRACE` set, counts
++//! what wakes each window's frames and prints a summary to stderr every 5 s.
++
++use std::cell::RefCell;
++use std::collections::HashMap;
++use std::sync::OnceLock;
++use std::time::{Duration, Instant};
++
++static ENABLED: OnceLock<bool> = OnceLock::new();
++
++pub(crate) fn enabled() -> bool {
++    *ENABLED.get_or_init(|| std::env::var_os("CAP_FRAME_TRACE").is_some())
++}
++
++struct State {
++    started: Instant,
++    counts: HashMap<(u64, &'static str, String), u64>,
++    calls: HashMap<&'static str, u64>,
++}
++
++thread_local! {
++    static STATE: RefCell<State> = RefCell::new(State {
++        started: Instant::now(),
++        counts: HashMap::new(),
++        calls: HashMap::new(),
++    });
++}
++
++fn condensed_backtrace() -> String {
++    let text = format!("{}", std::backtrace::Backtrace::force_capture());
++    let mut frames: Vec<(String, String)> = Vec::new();
++    let mut lines = text.lines().peekable();
++    while let Some(line) = lines.next() {
++        let trimmed = line.trim();
++        let Some((_, symbol)) = trimmed.split_once(": ") else {
++            continue;
++        };
++        let mut at = String::new();
++        if let Some(next) = lines.peek()
++            && next.trim().starts_with("at ")
++        {
++            at = next.trim().trim_start_matches("at ").to_string();
++            lines.next();
++        }
++        frames.push((symbol.to_string(), at));
++    }
++    let is_app = |symbol: &str| symbol.starts_with("cap_") || symbol.starts_with("<cap_");
++    let mut picked: Vec<String> = frames
++        .iter()
++        .filter(|(symbol, _)| is_app(symbol))
++        .take(4)
++        .map(|(symbol, at)| format!("{symbol} @ {}", short_path(at)))
++        .collect();
++    if picked.is_empty() {
++        picked = frames
++            .iter()
++            .filter(|(symbol, _)| {
++                !(symbol.starts_with("std::")
++                    || symbol.starts_with("core::")
++                    || symbol.starts_with("alloc::")
++                    || symbol.contains("backtrace")
++                    || symbol.contains("frame_trace"))
++            })
++            .take(6)
++            .map(|(symbol, at)| format!("{symbol} @ {}", short_path(at)))
++            .collect();
++    }
++    picked.join(" <- ")
++}
++
++fn short_path(at: &str) -> String {
++    let at = at.replace('\\', "/");
++    for marker in ["/src/", "/crates/"] {
++        if let Some(index) = at.rfind(marker) {
++            let start = at[..index].rfind('/').map(|i| i + 1).unwrap_or(0);
++            return at[start..].to_string();
++        }
++    }
++    at
++}
++
++/// `key: None` keys the call by a condensed backtrace, sampled one call in 4.
++pub(crate) fn record(window: u64, kind: &'static str, key: Option<String>) {
++    if !enabled() {
++        return;
++    }
++    STATE.with(|state| {
++        let mut state = state.borrow_mut();
++        let call = {
++            let entry = state.calls.entry(kind).or_insert(0);
++            *entry += 1;
++            *entry
++        };
++        let key = match key {
++            Some(key) => key,
++            None if call % 4 == 1 => condensed_backtrace(),
++            None => "(unsampled)".to_string(),
++        };
++        *state.counts.entry((window, kind, key)).or_insert(0) += 1;
++        if state.started.elapsed() >= Duration::from_secs(5) {
++            let elapsed = state.started.elapsed().as_secs_f64();
++            let mut rows: Vec<_> = state.counts.drain().collect();
++            rows.sort_by(|a, b| b.1.cmp(&a.1));
++            for ((window, kind, key), count) in rows.into_iter().take(40) {
++                eprintln!(
++                    "FRAMETRACE window={window} kind={kind} per_s={:.2} key={key}",
++                    count as f64 / elapsed
++                );
++            }
++            eprintln!("FRAMETRACE ---");
++            state.started = Instant::now();
++        }
++    });
++}
+diff --git a/crates/gpui/src/gpui.rs b/crates/gpui/src/gpui.rs
+index a143fab..1f282df 100644
+--- a/crates/gpui/src/gpui.rs
++++ b/crates/gpui/src/gpui.rs
+@@ -21,6 +21,7 @@ pub mod colors;
+ mod element;
+ mod elements;
+ mod executor;
++mod frame_trace;
+ mod platform_scheduler;
+ pub(crate) use platform_scheduler::PlatformScheduler;
+ mod geometry;
+diff --git a/crates/gpui/src/window.rs b/crates/gpui/src/window.rs
+index 75c3539..939ea95 100644
+--- a/crates/gpui/src/window.rs
++++ b/crates/gpui/src/window.rs
+@@ -1652,7 +1652,14 @@ impl Window {
+                     || needs_present.get()
+                     || (active.get() && input_rate_tracker.borrow_mut().is_high_rate());
+ 
++                let trace_window = handle.window_id().as_u64();
++                crate::frame_trace::record(trace_window, "frame_cb", Some(String::new()));
+                 if invalidator.is_dirty() || request_frame_options.force_render {
++                    crate::frame_trace::record(
++                        trace_window,
++                        "draw",
++                        Some(format!("force_render={}", request_frame_options.force_render)),
++                    );
+                     busy = true;
+                     measure("frame duration", || {
+                         handle
+@@ -1669,6 +1676,7 @@ impl Window {
+                             .log_err();
+                     })
+                 } else if needs_present {
++                    crate::frame_trace::record(trace_window, "present_only", Some(String::new()));
+                     busy = true;
+                     handle
+                         .update(&mut cx, |_, window, _| window.present())
+@@ -2030,6 +2038,7 @@ impl Window {
+     /// Mark the window as dirty, scheduling it to be redrawn on the next frame.
+     pub fn refresh(&mut self) {
+         if self.invalidator.not_drawing() {
++            crate::frame_trace::record(self.handle.window_id().as_u64(), "window_refresh", None);
+             self.refreshing = true;
+             self.invalidator.set_dirty(true);
+         }
+@@ -2351,6 +2360,7 @@ impl Window {
+ 
+     /// Schedule the given closure to be run directly after the current frame is rendered.
+     pub fn on_next_frame(&self, callback: impl FnOnce(&mut Window, &mut App) + 'static) {
++        crate::frame_trace::record(self.handle.window_id().as_u64(), "next_frame", None);
+         RefCell::borrow_mut(&self.next_frame_callbacks).push(Box::new(callback));
+         let frame_pacer = self.invalidator.inner.borrow().frame_pacer.clone();
+         frame_pacer.wake();
