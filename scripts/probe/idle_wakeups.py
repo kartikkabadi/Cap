@@ -14,9 +14,12 @@ import os
 import statistics
 import subprocess
 import sys
+import tempfile
 import time
 
 IS_WINDOWS = sys.platform == "win32"
+# Precise CPU cost: Windows reports CPU cycles, Linux reports run time.
+WORK_KEY = "mcycles_per_s" if IS_WINDOWS else "cpu_ms_per_s"
 
 
 if IS_WINDOWS:
@@ -31,6 +34,21 @@ if IS_WINDOWS:
         ctypes.POINTER(ctypes.c_ulong),
     ]
     ntdll.NtQuerySystemInformation.restype = ctypes.c_long
+    kernel32 = ctypes.WinDLL("kernel32", use_last_error=True)
+    kernel32.OpenThread.restype = wintypes.HANDLE
+    kernel32.OpenThread.argtypes = [wintypes.DWORD, wintypes.BOOL, wintypes.DWORD]
+    kernel32.QueryThreadCycleTime.argtypes = [wintypes.HANDLE, ctypes.POINTER(ctypes.c_ulonglong)]
+    kernel32.CloseHandle.argtypes = [wintypes.HANDLE]
+    THREAD_QUERY_LIMITED_INFORMATION = 0x0800
+
+    def thread_cycles(tid):
+        handle = kernel32.OpenThread(THREAD_QUERY_LIMITED_INFORMATION, False, tid)
+        if not handle:
+            return 0
+        cycles = ctypes.c_ulonglong(0)
+        kernel32.QueryThreadCycleTime(handle, ctypes.byref(cycles))
+        kernel32.CloseHandle(handle)
+        return cycles.value
     SYSTEM_PROCESS_INFORMATION = 5
     PROCESS_HEADER = 256  # sizeof(SYSTEM_PROCESS_INFORMATION) on x64
     THREAD_SIZE = 80  # sizeof(SYSTEM_THREAD_INFORMATION) on x64
@@ -56,6 +74,7 @@ if IS_WINDOWS:
             threads = int.from_bytes(raw[offset + 4 : offset + 8], "little")
             process_id = int.from_bytes(raw[offset + 80 : offset + 88], "little")
             if process_id == pid:
+                cycles = int.from_bytes(raw[offset + 24 : offset + 32], "little")
                 user = int.from_bytes(raw[offset + 40 : offset + 48], "little")
                 kernel = int.from_bytes(raw[offset + 48 : offset + 56], "little")
                 per_thread = []
@@ -77,6 +96,9 @@ if IS_WINDOWS:
                     "switches": sum(t[2] for t in per_thread),
                     "main_switches": main[2],
                     "main_cpu": main[3],
+                    # Cycle counts are exact; CPU times only advance per clock tick.
+                    "work": cycles / 1e6,
+                    "main_work": thread_cycles(main[1]) / 1e6,
                     "threads": {t[1]: t[2] for t in per_thread},
                 }
             if next_offset == 0:
@@ -99,7 +121,17 @@ else:
             fields = stat.read().rsplit(")", 1)[1].split()
         return (int(fields[11]) + int(fields[12])) / TICKS
 
+    def _run_ms(path):
+        with open(path) as schedstat:
+            return int(schedstat.read().split()[0]) / 1e6
+
     def snapshot(pid):
+        work = 0.0
+        for tid in os.listdir(f"/proc/{pid}/task"):
+            try:
+                work += _run_ms(f"/proc/{pid}/task/{tid}/schedstat")
+            except FileNotFoundError:
+                pass
         threads = {}
         for tid in os.listdir(f"/proc/{pid}/task"):
             try:
@@ -112,13 +144,22 @@ else:
             "switches": sum(threads.values()),
             "main_switches": threads[pid],
             "main_cpu": _cpu(f"/proc/{pid}/task/{pid}/stat"),
+            # Run time from schedstat is in ns; utime/stime only count 10 ms ticks.
+            "work": work,
+            "main_work": _run_ms(f"/proc/{pid}/task/{pid}/schedstat"),
             "threads": threads,
         }
 
 
-def measure(binary, mode, warmup, seconds):
+def measure(binary, mode, warmup, seconds, fresh_env):
+    env = dict(os.environ)
+    if fresh_env:
+        env[fresh_env] = tempfile.mkdtemp(prefix="idle-probe-")
     process = subprocess.Popen(
-        [binary, mode], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL
+        [binary] + ([mode] if mode != "none" else []),
+        stdout=subprocess.DEVNULL,
+        stderr=subprocess.DEVNULL,
+        env=env,
     )
     try:
         time.sleep(warmup)
@@ -145,6 +186,8 @@ def measure(binary, mode, warmup, seconds):
         "process_wakeups_per_s": (end["switches"] - start["switches"]) / wall,
         "cpu_pct": 100 * (end["cpu"] - start["cpu"]) / wall,
         "main_cpu_pct": 100 * (end["main_cpu"] - start["main_cpu"]) / wall,
+        WORK_KEY: (end["work"] - start["work"]) / wall,
+        "main_" + WORK_KEY: (end["main_work"] - start["main_work"]) / wall,
         "threads": len(end["threads"]),
         "top_thread_wakeups_per_s": [round(rate, 1) for rate in busiest[:5]],
     }
@@ -157,6 +200,7 @@ def main():
     parser.add_argument("--seconds", type=float, default=60)
     parser.add_argument("--warmup", type=float, default=8)
     parser.add_argument("--rounds", type=int, default=3)
+    parser.add_argument("--fresh-env", help="env var set to a new empty directory per launch")
     parser.add_argument("--json", required=True)
     parser.add_argument("--summary", required=True)
     parser.add_argument("variants", nargs="+", help="name=binary")
@@ -167,14 +211,20 @@ def main():
     for round_index in range(args.rounds):
         order = variants if round_index % 2 == 0 else list(reversed(variants))
         for name, binary in order:
-            result = measure(binary, args.mode, args.warmup, args.seconds)
+            result = measure(binary, args.mode, args.warmup, args.seconds, args.fresh_env)
             results[name].append(result)
             print(f"{args.label} round {round_index + 1} {name}: {json.dumps(result)}", flush=True)
 
     with open(args.json, "w") as out:
         json.dump(results, out, indent=2)
 
-    keys = ["main_wakeups_per_s", "process_wakeups_per_s", "cpu_pct", "main_cpu_pct"]
+    keys = [
+        "main_wakeups_per_s",
+        "process_wakeups_per_s",
+        WORK_KEY,
+        "main_" + WORK_KEY,
+        "cpu_pct",
+    ]
     lines = [
         f"### {args.label} ({args.mode}, {args.seconds:.0f} s x {args.rounds} rounds)",
         "",
@@ -185,7 +235,7 @@ def main():
         cells = []
         for key in keys:
             values = [run[key] for run in runs]
-            cells.append(f"{statistics.median(values):.2f} ({min(values):.2f}-{max(values):.2f})")
+            cells.append(f"{statistics.median(values):.3f} ({min(values):.3f}-{max(values):.3f})")
         lines.append(f"| {name} | " + " | ".join(cells) + " |")
     lines.append("")
     with open(args.summary, "a") as out:

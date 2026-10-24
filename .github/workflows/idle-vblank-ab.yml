@@ -139,3 +139,125 @@ jobs:
         with:
           name: probe-${{ matrix.name }}
           path: ${{ runner.temp }}/probe-*
+
+  # The real Cap app: its first window idling with a fresh app data dir.
+  app:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: windows
+            runner: windows-2022
+            target: x86_64-pc-windows-msvc
+          - name: linux-x11
+            runner: blacksmith-8vcpu-ubuntu-2404
+            target: x86_64-unknown-linux-gnu
+    name: app (${{ matrix.name }})
+    runs-on: ${{ matrix.runner }}
+    timeout-minutes: 240
+    env:
+      CARGO_PROFILE_DEV_DEBUG: "0"
+      ROUNDS: ${{ inputs.rounds || '3' }}
+      SECONDS_PER_RUN: ${{ inputs.seconds || '60' }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Pick head
+        shell: bash
+        run: |
+          head="${{ inputs.head_ref }}"
+          if [[ "${{ github.event_name }}" == "push" && -f scripts/probe/head-ref.txt ]]; then
+            head="$(tr -d '[:space:]' < scripts/probe/head-ref.txt)"
+          fi
+          echo "HEAD_REF=$head" >> "$GITHUB_ENV"
+
+      - name: Install Linux desktop dependencies
+        if: ${{ runner.os == 'Linux' }}
+        uses: ./.github/actions/install-desktop-deps
+
+      - name: Install Linux display and software GPU
+        if: ${{ runner.os == 'Linux' }}
+        run: sudo apt-get install -y --no-install-recommends xvfb mesa-vulkan-drivers libvulkan1 libegl1 libegl-mesa0 libgl1-mesa-dri
+
+      - name: Allow long paths in Zed's git dependencies
+        if: ${{ runner.os == 'Windows' }}
+        run: git config --global core.longpaths true
+
+      - uses: dtolnay/rust-toolchain@1.95.0
+        with:
+          targets: ${{ matrix.target }}
+
+      - uses: ./.github/actions/setup-rust-cache
+        with:
+          target: ${{ matrix.target }}
+          prefix-key: v1-rust-gpui
+          save-cache: false
+          workspaces: apps/desktop-gpui -> target
+
+      - name: Run setup
+        shell: bash
+        run: node scripts/setup.js
+        env:
+          RUST_TARGET_TRIPLE: ${{ matrix.target }}
+
+      - name: Build base
+        shell: bash
+        run: |
+          set -euxo pipefail
+          node scripts/sync-desktop-versions.mjs
+          ./scripts/prepare-gpui-dependency.sh
+          mkdir -p "$RUNNER_TEMP/app"
+          start=$(date +%s)
+          cargo +1.95.0 build --manifest-path apps/desktop-gpui/Cargo.toml --locked --target ${{ matrix.target }} --bin cap-gpui
+          echo "base build seconds: $(( $(date +%s) - start ))"
+          ext=""; [[ "$RUNNER_OS" == "Windows" ]] && ext=".exe"
+          cp "apps/desktop-gpui/target/${{ matrix.target }}/debug/cap-gpui$ext" "$RUNNER_TEMP/app/base$ext"
+
+      - name: Build head
+        if: ${{ env.HEAD_REF != '' }}
+        shell: bash
+        run: |
+          set -euxo pipefail
+          git fetch --no-tags --depth 1 origin "$HEAD_REF"
+          mkdir -p "$RUNNER_TEMP/head-patches"
+          for p in zed-gpui zed-windows zed-linux zed-idle-frames zed-streaming-image; do
+            git show "FETCH_HEAD:apps/desktop-gpui/patches/$p.patch" > "$RUNNER_TEMP/head-patches/$p.patch"
+          done
+          git -C ../zed-cap reset -q --hard
+          git -C ../zed-cap clean -fdq
+          for p in zed-gpui zed-windows zed-linux zed-idle-frames zed-streaming-image; do
+            git -C ../zed-cap apply --unidiff-zero "$RUNNER_TEMP/head-patches/$p.patch"
+          done
+          start=$(date +%s)
+          cargo +1.95.0 build --manifest-path apps/desktop-gpui/Cargo.toml --locked --target ${{ matrix.target }} --bin cap-gpui
+          echo "head build seconds: $(( $(date +%s) - start ))"
+          ext=""; [[ "$RUNNER_OS" == "Windows" ]] && ext=".exe"
+          cp "apps/desktop-gpui/target/${{ matrix.target }}/debug/cap-gpui$ext" "$RUNNER_TEMP/app/head$ext"
+
+      - name: Measure
+        shell: bash
+        run: |
+          set -euo pipefail
+          ext=""; py=python3
+          if [[ "$RUNNER_OS" == "Windows" ]]; then
+            ext=".exe"; py=python
+            export PATH="$(cygpath "$GITHUB_WORKSPACE/target/debug"):$PATH"
+          else
+            export LD_LIBRARY_PATH="$GITHUB_WORKSPACE/target/native-deps/lib:$GITHUB_WORKSPACE/target/debug:$GITHUB_WORKSPACE/target/${{ matrix.target }}/debug${LD_LIBRARY_PATH:+:$LD_LIBRARY_PATH}"
+            Xvfb :99 -screen 0 1920x1080x24 -noreset &
+            export DISPLAY=:99
+            sleep 2
+          fi
+          variants="base=$RUNNER_TEMP/app/base$ext"
+          [[ -n "$HEAD_REF" ]] && variants="$variants head=$RUNNER_TEMP/app/head$ext"
+          $py scripts/probe/idle_wakeups.py --label "${{ matrix.name }} cap-gpui" --mode none \
+            --fresh-env CAP_GPUI_APP_DATA_DIR --warmup 20 \
+            --seconds "$SECONDS_PER_RUN" --rounds "$ROUNDS" --json "$RUNNER_TEMP/app-idle.json" \
+            --summary "$RUNNER_TEMP/app-summary.md" $variants
+          cat "$RUNNER_TEMP/app-summary.md" >> "$GITHUB_STEP_SUMMARY"
+
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: app-${{ matrix.name }}
+          path: ${{ runner.temp }}/app-*.*

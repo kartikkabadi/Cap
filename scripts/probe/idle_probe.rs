@@ -130,7 +130,9 @@ async fn check(
     sleep(cx, 1300).await;
     let frames = renders.get() - before;
     say(format!("ANIMATION frames {frames}"));
-    if frames < 30 {
+    // CI renders in software, so the rate is far below the display's; a
+    // window left with single frames would draw one or two.
+    if frames < 10 {
         fail(format!("animation drew {frames} frames in 1 s"));
     }
     sleep(cx, 1000).await;
