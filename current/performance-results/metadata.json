@@ -1,0 +1,184 @@
+{
+  "started_utc": "2026-10-25T05:31:29.592211+00:00",
+  "finished_utc": "2026-10-25T05:45:39.788424+00:00",
+  "matrix": "core",
+  "pairs": 3,
+  "test_name": "ui::text_input::navigation_viewport_benchmark::benchmark_text_input_navigation_viewport",
+  "order": "Pair 1 baseline/candidate, pair 2 candidate/baseline, alternating thereafter.",
+  "samples_per_case": 7,
+  "expected_rows_per_process": 462,
+  "expected_cases_per_process": 66,
+  "benchmark_source": {
+    "path": "/Users/user/Documents/Codex/2026-10-24/ok-x20/work/pr/text-input-viewport-benchmark.rs",
+    "sha256": "6a2363731e9c13597587effd5cec17de14484f0ca4902cb94fefacb7e9627590"
+  },
+  "runner_source": {
+    "path": "/Users/user/Documents/Codex/2026-10-24/ok-x20/work/pr/run-viewport-pairs.py",
+    "sha256": "362290ba526a43eb9fc9af86896c227d88bf6a94f69a6ffd6b0986c52fcb53c8"
+  },
+  "executables": {
+    "baseline": {
+      "path": "/Users/user/Documents/Codex/2026-10-24/ok-x20/work/pr/baseline/gpui-tests",
+      "sha256": "7dfbbdc840eecc7a0c71e2324ab11f162fc2f2ca69559dec267be36b413ae85a"
+    },
+    "candidate": {
+      "path": "/Users/user/Documents/Codex/2026-10-24/ok-x20/work/pr/candidate/gpui-tests",
+      "sha256": "f583a07b15495ac4988f28e8251768eaa3a02f80570f8313b8f80909a4a54ffc"
+    }
+  },
+  "build_profile_reference": {
+    "path": "/Users/user/Documents/Codex/2026-10-24/ok-x20/work/pr/candidate/profile.json",
+    "sha256": "8a95f84c4dc6dc1c3bbed93bb5f6f96bc92b4c97e21eccbf9979536634b75341",
+    "contents": {
+      "reason": "compiler-artifact",
+      "package_id": "path+file:///Users/user/Documents/Codex/2026-10-24/ok-x20/work/Cap/apps/desktop-gpui#cap-desktop-gpui@0.6.1",
+      "manifest_path": "/Users/user/Documents/Codex/2026-10-24/ok-x20/work/Cap/apps/desktop-gpui/Cargo.toml",
+      "target": {
+        "kind": [
+          "bin"
+        ],
+        "crate_types": [
+          "bin"
+        ],
+        "name": "cap-gpui",
+        "src_path": "/Users/user/Documents/Codex/2026-10-24/ok-x20/work/Cap/apps/desktop-gpui/src/main.rs",
+        "edition": "2024",
+        "doc": true,
+        "doctest": false,
+        "test": true
+      },
+      "profile": {
+        "opt_level": "3",
+        "debuginfo": 0,
+        "debug_assertions": true,
+        "overflow_checks": true,
+        "test": true
+      },
+      "features": [],
+      "filenames": [
+        "/Users/user/Documents/Codex/2026-10-24/ok-x20/work/gpui-target/debug/deps/cap_gpui-fd2e799c9cd0394e"
+      ],
+      "executable": "/Users/user/Documents/Codex/2026-10-24/ok-x20/work/gpui-target/debug/deps/cap_gpui-fd2e799c9cd0394e",
+      "fresh": false
+    }
+  },
+  "build_log_references": {
+    "baseline": {
+      "path": "/Users/user/Documents/Codex/2026-10-24/ok-x20/work/pr/gpui-viewport-baseline-build.log",
+      "sha256": "e2d9587a62e9d6a4963a78960cbf3b914016647f9ff555c102dfc90f4922d2fb"
+    },
+    "candidate": {
+      "path": "/Users/user/Documents/Codex/2026-10-24/ok-x20/work/pr/gpui-viewport-candidate-build.log",
+      "sha256": "976a482f253a2d44cb5d9d94611f27bebc46b95cfb41629b73b99ffcb12e64c6"
+    }
+  },
+  "environment": {
+    "platform": "macOS-27.0.1-arm64-arm-64bit-Mach-O",
+    "python": "3.14.8",
+    "cpu": "arm",
+    "cpu_affinity": null,
+    "runtime_paths": {
+      "LD_LIBRARY_PATH": null,
+      "ORT_DYLIB_PATH": "/Users/user/Documents/Codex/2026-10-24/ok-x20/work/Cap/target/native-deps/onnxruntime/lib/libonnxruntime.dylib",
+      "XDG_RUNTIME_DIR": null
+    }
+  },
+  "viewport": {
+    "window": [
+      560,
+      320
+    ],
+    "scroll_viewport": [
+      560,
+      240
+    ],
+    "text_width": 496,
+    "font_size": 30,
+    "line_height": 45,
+    "alignment": "center",
+    "navigation_scroll": "Centers the 120-step midpoint once before timing; no per-key autoscroll.",
+    "row_range": "Visible row end is exclusive. Rows and offsets are included in each case key.",
+    "scroll_sequence": "120 redraws over a two-row round trip; positions prepared outside timing."
+  },
+  "scope": {
+    "action_handler": "Production handler, state changes and notify; timer inside one update closure, before effect flush.",
+    "key_dispatch": "Per-key GPUI binding dispatch plus synchronous TestPlatform CPU draw; no native font shaping, OS input or GPU presentation.",
+    "scroll_redraw": "ScrollHandle offset changes plus synchronous TestPlatform CPU redraw; no navigation-helper calls, native font shaping or GPU presentation."
+  },
+  "processes": [
+    {
+      "pair": 1,
+      "variant": "baseline",
+      "started_utc": "2026-10-25T05:31:29.731449+00:00",
+      "finished_utc": "2026-10-25T05:35:15.309860+00:00",
+      "elapsed_seconds": 225.57764941699998,
+      "exit_code": 0,
+      "stdout": "work/pr/performance-results/pair-1-baseline.stdout",
+      "stderr": "work/pr/performance-results/pair-1-baseline.stderr",
+      "validated_rows": 462,
+      "validated_cases": 66
+    },
+    {
+      "pair": 1,
+      "variant": "candidate",
+      "started_utc": "2026-10-25T05:35:15.322909+00:00",
+      "finished_utc": "2026-10-25T05:35:17.540710+00:00",
+      "elapsed_seconds": 2.217819249999593,
+      "exit_code": 0,
+      "stdout": "work/pr/performance-results/pair-1-candidate.stdout",
+      "stderr": "work/pr/performance-results/pair-1-candidate.stderr",
+      "validated_rows": 462,
+      "validated_cases": 66
+    },
+    {
+      "pair": 2,
+      "variant": "candidate",
+      "started_utc": "2026-10-25T05:35:17.555020+00:00",
+      "finished_utc": "2026-10-25T05:35:19.734012+00:00",
+      "elapsed_seconds": 2.179015167000216,
+      "exit_code": 0,
+      "stdout": "work/pr/performance-results/pair-2-candidate.stdout",
+      "stderr": "work/pr/performance-results/pair-2-candidate.stderr",
+      "validated_rows": 462,
+      "validated_cases": 66
+    },
+    {
+      "pair": 2,
+      "variant": "baseline",
+      "started_utc": "2026-10-25T05:35:19.747686+00:00",
+      "finished_utc": "2026-10-25T05:39:35.894311+00:00",
+      "elapsed_seconds": 256.14583887500066,
+      "exit_code": 0,
+      "stdout": "work/pr/performance-results/pair-2-baseline.stdout",
+      "stderr": "work/pr/performance-results/pair-2-baseline.stderr",
+      "validated_rows": 462,
+      "validated_cases": 66
+    },
+    {
+      "pair": 3,
+      "variant": "baseline",
+      "started_utc": "2026-10-25T05:39:35.902793+00:00",
+      "finished_utc": "2026-10-25T05:45:37.234215+00:00",
+      "elapsed_seconds": 361.32584566700007,
+      "exit_code": 0,
+      "stdout": "work/pr/performance-results/pair-3-baseline.stdout",
+      "stderr": "work/pr/performance-results/pair-3-baseline.stderr",
+      "validated_rows": 462,
+      "validated_cases": 66
+    },
+    {
+      "pair": 3,
+      "variant": "candidate",
+      "started_utc": "2026-10-25T05:45:37.241195+00:00",
+      "finished_utc": "2026-10-25T05:45:39.782196+00:00",
+      "elapsed_seconds": 2.540998917000252,
+      "exit_code": 0,
+      "stdout": "work/pr/performance-results/pair-3-candidate.stdout",
+      "stderr": "work/pr/performance-results/pair-3-candidate.stderr",
+      "validated_rows": 462,
+      "validated_cases": 66
+    }
+  ],
+  "validated_cases": 66,
+  "summary": "work/pr/performance-results/summary.csv"
+}

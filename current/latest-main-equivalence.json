@@ -1,0 +1,21 @@
+{
+  "tested_base": "900dd827b9626b5cb312cc993f715dfd465a53a9",
+  "latest_checked_main": "100f43a0d3593f60e314d806f6ceef481509d39c",
+  "unchanged_relevant_trees": {
+    "apps/desktop-gpui": "040000 tree 2bbac3173e1e1b2d79036ec9443c0fb633e335c8\tapps/desktop-gpui",
+    "crates": "040000 tree 6c97515cd38843e55af4a49a6a608e29cc6fecf6\tcrates",
+    "Cargo.toml": "100644 blob fa189ab77522ddeefab5b00b39e830fe63d7d4e9\tCargo.toml",
+    "Cargo.lock": "100644 blob 92f63bd7c77598e97e78a3a6c247342bbe49f292\tCargo.lock",
+    "scripts": "040000 tree 7c17bd47a82e359f5aaa979a375f5d156dc17fb6\tscripts",
+    ".cargo": ""
+  },
+  "new_upstream_paths": [
+    ".github/workflows/ci.yml",
+    "apps/cli/src/caps.rs",
+    "apps/cli/tests/cli.rs",
+    "apps/web/__tests__/unit/timeline-paused-window.test.ts",
+    "apps/web/app/s/[videoId]/_components/timeline/TimelinePlayhead.tsx",
+    "apps/web/app/s/[videoId]/_components/timeline/TimelineRail.tsx"
+  ],
+  "gpui_sources_dependencies_and_build_configuration_identical": true
+}

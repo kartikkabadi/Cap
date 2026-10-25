@@ -1,0 +1,32 @@
+{
+  "reason": "compiler-artifact",
+  "package_id": "path+file:///Users/user/Documents/Codex/2026-10-24/ok-x20/work/Cap/apps/desktop-gpui#cap-desktop-gpui@0.6.1",
+  "manifest_path": "/Users/user/Documents/Codex/2026-10-24/ok-x20/work/Cap/apps/desktop-gpui/Cargo.toml",
+  "target": {
+    "kind": [
+      "bin"
+    ],
+    "crate_types": [
+      "bin"
+    ],
+    "name": "cap-gpui",
+    "src_path": "/Users/user/Documents/Codex/2026-10-24/ok-x20/work/Cap/apps/desktop-gpui/src/main.rs",
+    "edition": "2024",
+    "doc": true,
+    "doctest": false,
+    "test": true
+  },
+  "profile": {
+    "opt_level": "0",
+    "debuginfo": 0,
+    "debug_assertions": true,
+    "overflow_checks": true,
+    "test": true
+  },
+  "features": [],
+  "filenames": [
+    "/Users/user/Documents/Codex/2026-10-24/ok-x20/work/gpui-target/debug/deps/cap_gpui-932105a3b19fc774"
+  ],
+  "executable": "/Users/user/Documents/Codex/2026-10-24/ok-x20/work/gpui-target/debug/deps/cap_gpui-932105a3b19fc774",
+  "fresh": false
+}

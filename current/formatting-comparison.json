@@ -1,0 +1,13 @@
+{
+  "changed_file_passes": true,
+  "baseline_target_passes": true,
+  "full_app_workspace_passes": false,
+  "all_reported_differences_are_unchanged_upstream_files": true,
+  "unchanged_upstream_files": [
+    "apps/desktop-gpui/src/feeds.rs",
+    "apps/desktop-gpui/src/main.rs",
+    "apps/desktop-gpui/src/onboarding_window.rs",
+    "apps/desktop-gpui/src/settings_window.rs"
+  ],
+  "confirmed_on_final_main": "900dd827b9626b5cb312cc993f715dfd465a53a9"
+}

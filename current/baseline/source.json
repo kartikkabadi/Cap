@@ -1,0 +1,10 @@
+{
+  "base": "ec15b98403441aee7780ff7734fef93d2e1a323f",
+  "production_sha256": "586563809ad75ca71aeda1a9d97d8c1ca91dac43e384fdaa19250fdd8ae9df76",
+  "instrumented_sha256": "b201eb072c0454fe2f77530cd2c58cc8841eef4bc867a563c016fc595aa76a74",
+  "hooks": [
+    "/Users/user/Documents/Codex/2026-10-24/ok-x20/work/review/independent-text-input.rs",
+    "/Users/user/Documents/Codex/2026-10-24/ok-x20/work/cap-gpui-long-script-performance/evidence/text-input-viewport-benchmark.rs",
+    "/Users/user/Documents/Codex/2026-10-24/ok-x20/work/review/layout-cache-diagnostic-baseline.rs"
+  ]
+}

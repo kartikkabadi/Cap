@@ -1,0 +1,1 @@
+viewport metadata: 560x320 window; 36px header; 44px footer; 560x240 scrolling viewport; 496px text width; 30px medium font; 45px line height; centered text; GPUI NoopTextSystem; no pixel renderer. Navigation centers the 120-step midpoint once before timing, with no per-key autoscroll. Visible row end is exclusive. Scroll cases change only ScrollHandle and request CPU redraw.

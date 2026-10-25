@@ -1,0 +1,2 @@
+Verified Unicode 17.0 extended grapheme conformance: 766 cases, 7801 byte offsets in both directions, against official expected chunks.
+Verified 374742 byte offsets, both directions; direct original comparison for all short cases and every997th long-script offset; all long offsets use the exact original forward/reverse iterator as oracle.

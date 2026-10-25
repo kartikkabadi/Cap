@@ -1,0 +1,34 @@
+
+running 29 tests
+test ui::text_input::independent_review::independent_composition_editing_and_undo ... ok
+test ui::text_input::independent_review::independent_geometry_and_hit_test_oracle ... ok
+test ui::text_input::layout_cache_diagnostic::diagnose_text_input_layout_cache ... ignored, manual TextInput layout cache diagnostic
+test ui::text_input::navigation_viewport_benchmark::benchmark_text_input_navigation_viewport ... ignored, manual headless TextInput action benchmark
+test ui::text_input::tests::a_caret_on_a_wrap_boundary_takes_the_later_row ... ok
+test ui::text_input::tests::a_combining_accent_is_one_grapheme ... ok
+test ui::text_input::tests::a_hex_field_commits_only_at_six_or_eight_digits ... ok
+test ui::text_input::tests::a_paragraph_that_does_not_wrap_has_one_row ... ok
+test ui::text_input::tests::a_pasted_newline_becomes_a_space_in_a_single_line_field ... ok
+test ui::text_input::tests::a_single_line_field_has_one_paragraph ... ok
+test ui::text_input::tests::alt_left_lands_on_the_start_of_the_previous_word ... ok
+test ui::text_input::tests::alt_right_lands_on_the_end_of_the_next_word ... ok
+test ui::text_input::tests::backspace_walks_graphemes_not_bytes ... ok
+test ui::text_input::tests::ctrl_chords_edit_text_only_off_macos ... ok
+test ui::text_input::tests::double_click_selects_the_word_under_the_caret ... ok
+test ui::text_input::tests::every_binding_is_a_single_keystroke_in_the_text_input_context ... ok
+test ui::text_input::tests::extending_back_onto_the_anchor_empties_the_selection ... ok
+test ui::text_input::tests::mac_chords_are_unchanged ... ok
+test ui::text_input::tests::no_bare_printable_key_is_bound ... ok
+test ui::text_input::tests::no_keystroke_is_bound_twice ... ok
+test ui::text_input::tests::punctuation_separates_words ... ok
+test ui::text_input::tests::row_starts_follow_the_wrap_boundaries ... ok
+test ui::text_input::tests::row_starts_of_an_empty_paragraph_is_just_zero ... ok
+test ui::text_input::tests::shift_arrow_extends_and_flips_across_the_anchor ... ok
+test ui::text_input::tests::the_caret_row_is_the_start_of_the_row_it_opens ... ok
+test ui::text_input::tests::triple_click_selects_the_paragraph ... ok
+test ui::text_input::tests::typed_characters_coalesce_into_one_undo_step ... ok
+test ui::text_input::tests::utf16_offsets_round_trip_through_astral_characters ... ok
+test ui::text_input::tests::word_navigation_is_utf8_safe ... ok
+
+test result: ok. 27 passed; 0 failed; 2 ignored; 0 measured; 1424 filtered out; finished in 0.02s
+

@@ -1,0 +1,9 @@
+{
+  "base": "100f43a0d3593f60e314d806f6ceef481509d39c",
+  "final_blob": "18d4cbac0407490e2c009ec730c852542e67d435",
+  "patch_sha256": "d10bfe738f66c60ae529820bc2985710b1b764f550c550f3338fb241d94ba5a6",
+  "source_sha256": "a14085e4059c6e026c108ebc9293d2a53fa95b76b1debaa2f919a0b22c5516e6",
+  "only_target_changed": true,
+  "applies_cleanly_and_produces_exact_source": true,
+  "code_commit": "8f14e93e92100144605f37dcf132a4dd36fd38d8"
+}

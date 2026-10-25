@@ -1,0 +1,9 @@
+
+running 1 test
+test ui::text_input::layout_cache_diagnostic::diagnose_text_input_layout_cache ... layout_cache operation=right retained=true before_wrap=Some(496px) after_wrap=Some(496px) before_rows=224 after_rows=224 before_paragraphs=23 after_paragraphs=23 before_font=30px after_font=30px before_line_height=45px after_line_height=45px
+layout_cache operation=shift-right retained=true before_wrap=Some(496px) after_wrap=Some(496px) before_rows=224 after_rows=224 before_paragraphs=23 after_paragraphs=23 before_font=30px after_font=30px before_line_height=45px after_line_height=45px
+layout_cache operation=scroll retained=true before_wrap=Some(496px) after_wrap=Some(496px) before_rows=224 after_rows=224 before_paragraphs=23 after_paragraphs=23 before_font=30px after_font=30px before_line_height=45px after_line_height=45px
+ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 1464 filtered out; finished in 0.00s
+

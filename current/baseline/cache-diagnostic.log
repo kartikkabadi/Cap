@@ -1,0 +1,18 @@
+
+running 1 test
+test ui::text_input::layout_cache_diagnostic::diagnose_text_input_layout_cache ... layout_cache operation=right retained=false before_wrap=Some(496px) after_wrap=Some(496px) before_rows=224 after_rows=224 before_paragraphs=23 after_paragraphs=23 before_font=30px after_font=30px before_line_height=45px after_line_height=45px
+layout_cache operation=shift-right retained=false before_wrap=Some(496px) after_wrap=Some(496px) before_rows=224 after_rows=224 before_paragraphs=23 after_paragraphs=23 before_font=30px after_font=30px before_line_height=45px after_line_height=45px
+layout_cache operation=scroll retained=false before_wrap=Some(496px) after_wrap=Some(496px) before_rows=224 after_rows=224 before_paragraphs=23 after_paragraphs=23 before_font=30px after_font=30px before_line_height=45px after_line_height=45px
+
+thread 'ui::text_input::layout_cache_diagnostic::diagnose_text_input_layout_cache' (327802) panicked at /Users/user/Documents/Codex/2026-10-24/ok-x20/work/review/layout-cache-diagnostic-baseline.rs:228:9:
+warm layout replaced during: ["right", "shift-right", "scroll"]
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+FAILED
+
+failures:
+
+failures:
+    ui::text_input::layout_cache_diagnostic::diagnose_text_input_layout_cache
+
+test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 1452 filtered out; finished in 0.01s
+

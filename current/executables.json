@@ -1,0 +1,22 @@
+{
+  "baseline-tests": {
+    "bytes": 79259368,
+    "sha256": "7dfbbdc840eecc7a0c71e2324ab11f162fc2f2ca69559dec267be36b413ae85a"
+  },
+  "candidate-tests": {
+    "bytes": 79175576,
+    "sha256": "f583a07b15495ac4988f28e8251768eaa3a02f80570f8313b8f80909a4a54ffc"
+  },
+  "committed-tests": {
+    "bytes": 100559688,
+    "sha256": "cbcabaccf9aa814f4b3309b15bc742064e2c97fcf20e712c9b3c227903ec9cd4"
+  },
+  "baseline-native": {
+    "bytes": 15180016,
+    "sha256": "19992595f4c2e5e2d3b85673ebe512ee946312f9a6f3d4a028d496a115500326"
+  },
+  "candidate-native": {
+    "bytes": 15179632,
+    "sha256": "f3f9f0e70f8a10fee94ae193bda2909ac6bbd296af0dc87169a2d4d86e303000"
+  }
+}

@@ -1,0 +1,17 @@
+{
+  "platform": "macOS 27.0.1 arm64",
+  "cpu": "Apple M1 Pro",
+  "logical_cpus": 8,
+  "memory_bytes": 17179869184,
+  "rustc": "1.95.0 (59807616e 2026-04-14)",
+  "benchmark_base": "ec15b98403441aee7780ff7734fef93d2e1a323f",
+  "production_source_sha256": "a14085e4059c6e026c108ebc9293d2a53fa95b76b1debaa2f919a0b22c5516e6",
+  "shared_host": true,
+  "cpu_affinity_controlled": false,
+  "power_state_controlled": false,
+  "native_capture_pixels": [
+    560,
+    320
+  ],
+  "native_platform_timed": false
+}

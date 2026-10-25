@@ -1,0 +1,5 @@
+{
+  "compiler_artifact_targets": 1018,
+  "all_dependency_and_app_features_and_profiles_match": true,
+  "comparison": "multiset preserves distinct build/target variants of a package"
+}

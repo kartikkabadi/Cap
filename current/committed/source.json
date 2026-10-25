@@ -1,0 +1,6 @@
+{
+  "base": "900dd827b9626b5cb312cc993f715dfd465a53a9",
+  "production_sha256": "a14085e4059c6e026c108ebc9293d2a53fa95b76b1debaa2f919a0b22c5516e6",
+  "instrumented_sha256": "a14085e4059c6e026c108ebc9293d2a53fa95b76b1debaa2f919a0b22c5516e6",
+  "hooks": []
+}

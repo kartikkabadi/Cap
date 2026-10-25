@@ -1,0 +1,9 @@
+{
+  "baseline_previous_grapheme": "fec44b24385d74c96ecd99c552d20081616241c4b193bb13cf94a2248045f51f",
+  "baseline_next_grapheme": "48699bcaa8c3ea30bb518db2ea8cb086e2bf8900dff00cfdb33235b93fd754d7",
+  "candidate_previous_grapheme": "6b8694a00984952948ea0ba00da41c6604027dd81e1acb9c10c8c53d61f23bc2",
+  "candidate_next_grapheme": "4c9017c3effff4f4a8191c830aae566a6a285d5f9632cc8492a6d1d769340225",
+  "verification_binary_sha256": "1a1cea22e193e5711e2c3ce60c1e28ed2e06c75a1e434513c2bdb5f511fe9e2a",
+  "unicode_dependency": "unicode-segmentation 1.13.3",
+  "matching_current_sources": true
+}
